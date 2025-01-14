@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 
 import '../data.dart';
 import '../main_layout.dart';
+import '../provider/auth_provider.dart';
+import '../screens/article_details_screen.dart';
 import '../screens/articles_screen.dart';
 import '../screens/book_details_screen.dart';
 import '../screens/books_screen.dart';
 import '../screens/home_screen.dart';
-import '../screens/article_details_screen.dart';
+import '../screens/login_screen.dart';
 import '../screens/services_screen.dart';
 import '../screens/task_screen.dart';
 
@@ -169,4 +171,29 @@ class ArticlesLocation extends BeamLocation<BeamState> {
             ),
           ),
       ];
+}
+
+class AuthLocation extends BeamLocation<BeamState> {
+  final AuthNotifier authNotifier;
+  AuthLocation({
+    required this.authNotifier,
+  });
+
+  @override
+  List<String> get pathPatterns => ['/login', '/logout'];
+
+  @override
+  List<BeamPage> buildPages(BuildContext context, BeamState state) {
+    if (state.uri.path == '/logout') {
+      authNotifier.logout();
+    }
+
+    return [
+      BeamPage(
+        key: const ValueKey('login'),
+        title: 'Login',
+        child: LoginScreen(),
+      ),
+    ];
+  }
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'bottomNavigationBar/app_bottom_navigation_bar.dart';
 
-import 'drawer/dynamic_drawer.dart';
+import 'drawer/auth_dynamic_drawer.dart';
 
 // MainLayout for persistent drawer and bottom navigation bar
 class MainLayout extends StatelessWidget {
@@ -21,7 +21,7 @@ class MainLayout extends StatelessWidget {
       // appBar: AppBar(title: Text('Beamer Example')),
       // drawer: AppDrawer(),
       appBar: AppBar(title: const Text('Beamer + Riverpod Drawer')),
-      drawer: DynamicDrawer(),
+      drawer: AuthDynamicDrawer(),
       body: child,
       bottomNavigationBar: AppBottomNavigationBar(currentIndex: currentIndex),
     );

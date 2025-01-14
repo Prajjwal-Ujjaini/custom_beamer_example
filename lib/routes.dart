@@ -1,9 +1,25 @@
 import 'package:beamer/beamer.dart';
-
 import 'beam_locations/beam_locations.dart';
 
-final routerDelegate = BeamerDelegate(
+import 'provider/auth_provider.dart';
+
+BeamerDelegate createRouterDelegate(AuthNotifier authNotifier) {
+  return BeamerDelegate(
     initialPath: '/home',
+
+    guards: [
+      BeamGuard(
+        pathPatterns: ['/logout'],
+        check: (context, location) {
+          authNotifier.logout();
+          return false; // Prevents navigation to the actual `/logout` page.
+        },
+        onCheckFailed: (context, location) {
+          Beamer.of(context).beamToNamed('/home'); // Redirect to login.
+        },
+      ),
+    ],
+
     //   locationBuilder: RoutesLocationBuilder(
     //   routes: {
     //     '/': (context, state) => const HomeScreen(),
@@ -12,8 +28,34 @@ final routerDelegate = BeamerDelegate(
     //   },
     // ),
 
-    locationBuilder: BeamerLocationBuilder(
-      beamLocations: [
+//auth
+    //   locationBuilder: RoutesLocationBuilder(
+    //   routes: {
+    // '/': (context, state) => const HomeScreen(),
+    // '/login': (context, state) => const LoginScreen(),
+    // '/logout': (context, state) {
+    //   final authNotifier = context.read(authProvider.notifier);
+    //   authNotifier.logout();
+    //   return const LoginScreen();
+    // },
+    //   },
+    // ),
+// auth
+    //   locationBuilder: (routeInformation, _) {
+    //   final container = ProviderScope.containerOf(globalContext); // Get global context
+    //   final authNotifier = container.read(authProvider.notifier);
+
+    //   if (routeInformation.location?.startsWith('/login') == true ||
+    //       routeInformation.location?.startsWith('/logout') == true) {
+    //     return AuthLocation(routeInformation, authNotifier);
+    //   }
+    //   return HomeLocation(routeInformation);
+    // },
+
+    locationBuilder: (routeInformation, _) {
+      // Create a list of locations dynamically
+      final beamLocations = [
+        AuthLocation(authNotifier: authNotifier),
         HomeLocation(),
         ProfileLocation(),
         TaskLocation(),
@@ -21,8 +63,27 @@ final routerDelegate = BeamerDelegate(
         SettingsLocation(),
         BooksLocation(),
         ArticlesLocation(),
-      ],
-    ).call
+      ];
+
+      // Use BeamerLocationBuilder for matching
+      return BeamerLocationBuilder(beamLocations: beamLocations).call(
+        routeInformation,
+        _,
+      );
+    },
+
+    // locationBuilder: BeamerLocationBuilder(
+    //   beamLocations: [
+    //     AuthLocation(),
+    //     HomeLocation(),
+    //     ProfileLocation(),
+    //     TaskLocation(),
+    //     ServicesLocation(),
+    //     SettingsLocation(),
+    //     BooksLocation(),
+    //     ArticlesLocation(),
+    //   ],
+    // ).call
 
     // locationBuilder: (routeInformation, _) {
     //   if (routeInformation.location!.startsWith('/services')) {
@@ -39,5 +100,5 @@ final routerDelegate = BeamerDelegate(
     //   }
     //   return HomeLocation();
     // },
-
-    );
+  );
+}
