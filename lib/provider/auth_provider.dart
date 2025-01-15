@@ -1,5 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../dependencies/app_dependencies.dart';
+import '../services/auth_service.dart';
+
 class AuthState {
   final bool isAuthenticated;
   final String? userName;
@@ -15,17 +18,26 @@ class AuthState {
 }
 
 class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier() : super(const AuthState());
+  final AuthService authService;
 
-  void login(String userName) {
-    state = state.copyWith(isAuthenticated: true, userName: userName);
+  AuthNotifier({required this.authService}) : super(const AuthState());
+
+  Future<void> login(String username, String password) async {
+    final isAuthenticated = await authService.authenticate(username, password);
+    if (isAuthenticated) {
+      state = state.copyWith(isAuthenticated: true, userName: username);
+    } else {
+      state = state.copyWith(isAuthenticated: false, userName: null);
+    }
   }
 
-  void logout() {
+  Future<void> logout() async {
+    await authService.logoutFromServer();
     state = state.copyWith(isAuthenticated: false, userName: null);
   }
 }
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
-  return AuthNotifier();
+  final dependencies = ref.read(appDependenciesProvider);
+  return dependencies.authNotifier;
 });

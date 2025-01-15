@@ -13,9 +13,9 @@ class LoginScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Login')),
       body: Center(
         child: ElevatedButton(
-          onPressed: () {
-            // Simulate login
-            authNotifier.login('User123');
+          onPressed: () async {
+            // await authNotifier.login('username', 'password');
+            await authNotifier.login('admin', 'password');
             Beamer.of(context).beamToNamed('/home');
           },
           child: const Text('Login'),
