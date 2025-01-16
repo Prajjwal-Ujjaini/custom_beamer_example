@@ -1,3 +1,4 @@
+import 'package:beamer/beamer.dart';
 import 'package:flutter/material.dart';
 
 import 'bottomNavigationBar/app_bottom_navigation_bar.dart';
@@ -20,7 +21,17 @@ class MainLayout extends StatelessWidget {
     return Scaffold(
       // appBar: AppBar(title: Text('Beamer Example')),
       // drawer: AppDrawer(),
-      appBar: AppBar(title: const Text('Beamer + Riverpod Drawer')),
+      appBar: AppBar(
+        title: const Text('Beamer + Riverpod Drawer'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.shopping_cart),
+            onPressed: () {
+              Beamer.of(context).beamToNamed('/cart');
+            },
+          ),
+        ],
+      ),
       drawer: AuthDynamicDrawer(),
       body: child,
       bottomNavigationBar: AppBottomNavigationBar(currentIndex: currentIndex),

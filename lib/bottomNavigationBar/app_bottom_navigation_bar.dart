@@ -22,7 +22,9 @@ class AppBottomNavigationBar extends StatelessWidget {
             context.beamToNamed('/home');
             break;
           case 2:
-            context.beamToNamed('/settings');
+            // context.beamToNamed('/settings');
+            context.beamToNamed('/products');
+
             break;
         }
       },

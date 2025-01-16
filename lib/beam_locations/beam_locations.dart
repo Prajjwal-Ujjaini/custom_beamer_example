@@ -1,4 +1,6 @@
 import 'package:beamer/beamer.dart';
+import 'package:beamer_example/screens/cart_page.dart';
+import 'package:beamer_example/screens/product_list_page.dart';
 import 'package:flutter/material.dart';
 
 import '../data.dart';
@@ -194,6 +196,56 @@ class AuthLocation extends BeamLocation<BeamState> {
         title: 'Login',
         child: LoginScreen(),
       ),
+    ];
+  }
+}
+
+class ProductsLocation extends BeamLocation<BeamState> {
+  @override
+  List<String> get pathPatterns => ['/products'];
+
+  @override
+  List<BeamPage> buildPages(BuildContext context, BeamState state) => [
+        BeamPage(
+          key: ValueKey('products'),
+          title: 'Products',
+          type: BeamPageType.noTransition,
+          child: MainLayout(
+            currentIndex: 1,
+            child: ProductListPage(),
+          ),
+        ),
+        // if (state.pathParameters.containsKey('bookId'))
+        //   BeamPage(
+        //     key: ValueKey('book-${state.pathParameters['bookId']}'),
+        //     title: books.firstWhere((book) =>
+        //         book['id'] == state.pathParameters['bookId'])['title'],
+        //     child: MainLayout(
+        //       currentIndex: 1,
+        //       child: BookDetailsScreen(
+        //         book: books.firstWhere(
+        //             (book) => book['id'] == state.pathParameters['bookId']),
+        //       ),
+        //     ),
+        //   ),
+      ];
+}
+
+class CartLocation extends BeamLocation<BeamState> {
+  @override
+  List<String> get pathPatterns => ['/cart'];
+
+  @override
+  List<BeamPage> buildPages(BuildContext context, BeamState state) {
+    return [
+      BeamPage(
+        key: const ValueKey('cart'),
+        title: 'cart',
+        child: MainLayout(
+          currentIndex: 1,
+          child: CartPage(),
+        ),
+      )
     ];
   }
 }

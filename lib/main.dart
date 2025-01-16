@@ -6,8 +6,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dependencies/app_dependencies.dart';
 
 void main() {
+  // Create an instance of AppDependencies to inject globally
+  final appDependencies = AppDependencies();
+
   runApp(
     ProviderScope(
+      overrides: [
+        // Override the global appDependenciesProvider with the instance
+        appDependenciesProvider.overrideWithValue(appDependencies),
+      ],
       child: MyApp(),
     ),
   );
@@ -20,6 +27,7 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // final container = ProviderScope.containerOf(context);
     // final authNotifier = container.read(authProvider.notifier);
+
     // Access the AppDependencies from the provider
     final appDependencies = ref.watch(appDependenciesProvider);
 
