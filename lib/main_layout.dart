@@ -30,6 +30,12 @@ class MainLayout extends StatelessWidget {
               Beamer.of(context).beamToNamed('/cart');
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.online_prediction_sharp),
+            onPressed: () {
+              Beamer.of(context).beamToNamed('/order');
+            },
+          ),
         ],
       ),
       drawer: AuthDynamicDrawer(),

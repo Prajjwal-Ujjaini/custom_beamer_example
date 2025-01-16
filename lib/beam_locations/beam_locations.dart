@@ -1,5 +1,6 @@
 import 'package:beamer/beamer.dart';
 import 'package:beamer_example/screens/cart_page.dart';
+import 'package:beamer_example/screens/order_list_page.dart';
 import 'package:beamer_example/screens/product_list_page.dart';
 import 'package:flutter/material.dart';
 
@@ -244,6 +245,25 @@ class CartLocation extends BeamLocation<BeamState> {
         child: MainLayout(
           currentIndex: 1,
           child: CartPage(),
+        ),
+      )
+    ];
+  }
+}
+
+class OrderLocation extends BeamLocation<BeamState> {
+  @override
+  List<String> get pathPatterns => ['/order'];
+
+  @override
+  List<BeamPage> buildPages(BuildContext context, BeamState state) {
+    return [
+      BeamPage(
+        key: const ValueKey('order'),
+        title: 'order',
+        child: MainLayout(
+          currentIndex: 1,
+          child: OrderListPage(),
         ),
       )
     ];

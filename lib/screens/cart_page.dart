@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/order_model.dart';
 import '../provider/cart_provider.dart';
+import '../provider/order_provider.dart';
 
 class CartPage extends ConsumerWidget {
   const CartPage({super.key});
@@ -9,6 +11,7 @@ class CartPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cartItems = ref.watch(cartProvider);
     final cartNotifier = ref.read(cartProvider.notifier);
+    final orderNotifier = ref.read(orderProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
@@ -75,6 +78,55 @@ class CartPage extends ConsumerWidget {
                     },
                     child: const Text('Checkout'),
                   ),
+                  ElevatedButton(
+                    onPressed: () {
+                      try {
+                        cartNotifier.placeOrder();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Order placed!')),
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(e.toString())),
+                        );
+                      }
+                    },
+                    child: const Text('Place Order'),
+                  ),
+                  // ElevatedButton(
+                  //   onPressed: () {
+                  //     try {
+                  //       // Prepare the order details (replace with your actual data)
+                  //       final order = OrderModel(
+                  //         orderId: DateTime.now()
+                  //             .toString(), // Generating unique orderId
+                  //         userId:
+                  //             'user123', // Example user ID, replace as needed
+                  //         productIds: [
+                  //           'product1',
+                  //           'product2'
+                  //         ], // Example product IDs, replace with actual data
+                  //         totalPrice: cartNotifier
+                  //             .totalPrice, // Use the total price from the cart
+                  //         orderDate: DateTime.now(),
+                  //       );
+
+                  //       // Place the order
+                  //       cartNotifier.placeOrder(order);
+
+                  //       // Show confirmation message
+                  //       ScaffoldMessenger.of(context).showSnackBar(
+                  //         const SnackBar(content: Text('Order placed!')),
+                  //       );
+                  //     } catch (e) {
+                  //       // Handle error (e.g., show error message if order placement fails)
+                  //       ScaffoldMessenger.of(context).showSnackBar(
+                  //         SnackBar(content: Text(e.toString())),
+                  //       );
+                  //     }
+                  //   },
+                  //   child: const Text('Place Order'),
+                  // )
                 ],
               ),
             )

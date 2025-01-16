@@ -1,57 +1,64 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../dependencies/app_dependencies.dart';
 import '../models/cart_model.dart';
+import '../models/order_model.dart';
+import '../services/cart_service.dart';
+import 'order_provider.dart';
 
 class CartNotifier extends StateNotifier<List<CartModel>> {
-  CartNotifier() : super([]);
+  final CartService cartService;
+
+  CartNotifier({required this.cartService}) : super(cartService.cartItems);
 
   void addToCart(CartModel item) {
-    final existingIndex =
-        state.indexWhere((cartItem) => cartItem.productId == item.productId);
-    if (existingIndex != -1) {
-      state = [
-        for (int i = 0; i < state.length; i++)
-          if (i == existingIndex)
-            CartModel(
-              productId: state[i].productId,
-              name: state[i].name,
-              quantity: state[i].quantity + item.quantity,
-              price: state[i].price,
-            )
-          else
-            state[i],
-      ];
-    } else {
-      state = [...state, item];
-    }
+    cartService.addToCart(item);
+    state = cartService.cartItems;
   }
 
   void updateQuantity(String productId, int quantity) {
-    state = [
-      for (final item in state)
-        if (item.productId == productId)
-          CartModel(
-            productId: item.productId,
-            name: item.name,
-            quantity: quantity,
-            price: item.price,
-          )
-        else
-          item,
-    ];
+    cartService.updateQuantity(productId, quantity);
+    state = cartService.cartItems;
   }
 
   void removeFromCart(String productId) {
-    state = state.where((item) => item.productId != productId).toList();
+    cartService.removeFromCart(productId);
+    state = cartService.cartItems;
   }
 
   void clearCart() {
-    state = [];
+    cartService.clearCart();
+    state = cartService.cartItems;
   }
 
-  double get totalPrice => state.fold(0, (total, item) => total + item.total);
+  double get totalPrice => cartService.totalPrice;
+
+  void placeOrder() {
+    if (cartService.cartItems.isEmpty) {
+      throw Exception('Cart is empty. Cannot place an order.');
+    }
+
+    final order = OrderModel(
+      orderId: DateTime.now().toIso8601String(),
+      orderDate: DateTime.now(),
+      products: cartService.cartItems
+          .map((item) => {
+                'productId': item.productId,
+                'name': item.name,
+                'quantity': item.quantity,
+                'price': item.price,
+              })
+          .toList(),
+      totalPrice: cartService.totalPrice,
+    );
+
+    // Obtain the OrderNotifier and place the order
+    cartService.clearCart();
+    state = cartService.cartItems;
+  }
 }
 
 final cartProvider =
     StateNotifierProvider<CartNotifier, List<CartModel>>((ref) {
-  return CartNotifier();
+  final dependencies = ref.read(appDependenciesProvider);
+  return CartNotifier(cartService: dependencies.cartService);
 });

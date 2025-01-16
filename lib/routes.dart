@@ -29,7 +29,8 @@ BeamerDelegate createRouterDelegate(AppDependencies dependencies) {
         BooksLocation(),
         ArticlesLocation(),
         ProductsLocation(),
-        CartLocation()
+        CartLocation(),
+        OrderLocation()
       ];
 
       return BeamerLocationBuilder(beamLocations: beamLocations).call(
