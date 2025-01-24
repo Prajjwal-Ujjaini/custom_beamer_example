@@ -92,7 +92,7 @@ final authInitializationProvider = FutureProvider<bool>((ref) async {
 class SplashScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    Future.delayed(Duration(seconds: 3), () {
+    Future.delayed(Duration(seconds: 20), () {
       final isLoggedIn = ref.read(authProvider);
       if (isLoggedIn) {
         Beamer.of(context).beamToNamed('/dashboard');
@@ -106,6 +106,11 @@ class SplashScreen extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Image.network(
+              'https://storage.googleapis.com/cms-storage-bucket/d406c736e7c4c57f5f61.png',
+              width: 150,
+            ),
+            SizedBox(height: 20),
             Text('Welcome to the App!', style: TextStyle(fontSize: 24)),
             SizedBox(height: 20),
             CircularProgressIndicator(),
