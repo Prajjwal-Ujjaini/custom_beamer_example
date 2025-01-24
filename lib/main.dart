@@ -22,8 +22,12 @@ class AuthNotifier extends StateNotifier<bool> {
   }
 
   Future<void> login(String token) async {
-    await _storage.write(key: 'auth_token', value: token);
-    state = true;
+    try {
+      await _storage.write(key: 'auth_token', value: token);
+      state = true;
+    } catch (e) {
+      throw Exception('Login failed: Unable to store token');
+    }
   }
 
   Future<void> logout() async {
@@ -42,6 +46,9 @@ class MyApp extends ConsumerWidget {
     final authInitialization = ref.watch(authInitializationProvider);
 
     return MaterialApp.router(
+      theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
+      themeMode: ThemeMode.system, // System-based dark/light theme
       routerDelegate: BeamerDelegate(
         initialPath: '/splash',
         locationBuilder: RoutesLocationBuilder(
@@ -92,8 +99,7 @@ final authInitializationProvider = FutureProvider<bool>((ref) async {
 class SplashScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    Future.delayed(Duration(seconds: 20), () {
-      final isLoggedIn = ref.read(authProvider);
+    ref.listen<bool>(authProvider, (_, isLoggedIn) {
       if (isLoggedIn) {
         Beamer.of(context).beamToNamed('/dashboard');
       } else {
@@ -128,8 +134,14 @@ class LoginPage extends ConsumerWidget {
       body: Center(
         child: ElevatedButton(
           onPressed: () async {
-            await ref.read(authProvider.notifier).login('dummy_token');
-            Beamer.of(context).beamToNamed('/dashboard');
+            try {
+              await ref.read(authProvider.notifier).login('dummy_token');
+              Beamer.of(context).beamToNamed('/dashboard');
+            } catch (e) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Login failed: ${e.toString()}')),
+              );
+            }
           },
           child: Text('Login'),
         ),
