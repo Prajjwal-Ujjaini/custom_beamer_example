@@ -45,14 +45,12 @@ class MainLayout extends StatelessWidget {
   }
 }
 
+// // import 'package:beamer/beamer.dart';
+// // import 'package:beamer_example/routes.dart';
+// // import 'package:flutter/material.dart';
+// // import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-
-// import 'package:beamer/beamer.dart';
-// import 'package:beamer_example/routes.dart';
-// import 'package:flutter/material.dart';
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-// import 'dependencies/app_dependencies.dart';
+// // import 'dependencies/app_dependencies.dart';
 
 // void main() {
 //   // Create an instance of AppDependencies to inject globally

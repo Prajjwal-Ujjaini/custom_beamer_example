@@ -3,16 +3,32 @@ import 'package:beamer/beamer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-final secureStorageProvider = Provider((ref) => const FlutterSecureStorage());
-final authProvider = StateNotifierProvider<AuthNotifier, bool>((ref) {
-  final storage = ref.watch(secureStorageProvider);
-  return AuthNotifier(storage);
+// Step 1: Create AppDependencies to manage all services and notifiers
+class AppDependencies {
+  final FlutterSecureStorage secureStorage;
+  final AuthNotifier authNotifier;
+
+  AppDependencies()
+      : secureStorage = const FlutterSecureStorage(),
+        authNotifier =
+            AuthNotifier(secureStorage: const FlutterSecureStorage());
+
+  // Add other services/notifiers as needed
+}
+
+// Provider for AppDependencies
+final appDependenciesProvider = Provider<AppDependencies>((ref) {
+  throw UnimplementedError(
+      'AppDependencies must be provided via ProviderScope.overrideWithValue.');
 });
 
+// Step 2: Create AuthNotifier to handle login/logout and session persistence
 class AuthNotifier extends StateNotifier<bool> {
   final FlutterSecureStorage _storage;
 
-  AuthNotifier(this._storage) : super(false) {
+  AuthNotifier({required FlutterSecureStorage secureStorage})
+      : _storage = secureStorage,
+        super(false) {
     _checkAuthStatus();
   }
 
@@ -36,13 +52,33 @@ class AuthNotifier extends StateNotifier<bool> {
   }
 }
 
+// Step 3: Define the authProvider to expose the authentication state
+final authProvider = StateNotifierProvider<AuthNotifier, bool>((ref) {
+  final appDependencies = ref.read(appDependenciesProvider);
+  return appDependencies.authNotifier;
+});
+
+// Step 4: Main App with AppDependencies injection
 void main() {
-  runApp(ProviderScope(child: MyApp()));
+  // Create an instance of AppDependencies to inject globally
+  final appDependencies = AppDependencies();
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        // Override the global appDependenciesProvider with the instance
+        appDependenciesProvider.overrideWithValue(appDependencies),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Access AppDependencies and use them in your app
+    final appDependencies = ref.watch(appDependenciesProvider);
     final authInitialization = ref.watch(authInitializationProvider);
 
     return MaterialApp.router(
@@ -63,15 +99,13 @@ class MyApp extends ConsumerWidget {
         guards: [
           BeamGuard(
             pathPatterns: ['/dashboard', '/settings', '/profile'],
-            check: (context, location) =>
-                ref.read(authProvider), // Only allow if authenticated
+            check: (context, location) => ref.read(authProvider),
             onCheckFailed: (context, location) =>
                 Beamer.of(context).beamToNamed('/login'),
           ),
           BeamGuard(
             pathPatterns: ['/login', '/splash'],
-            check: (context, location) => !ref
-                .read(authProvider), // Redirect logged-in users to dashboard
+            check: (context, location) => !ref.read(authProvider),
             onCheckFailed: (context, location) =>
                 Beamer.of(context).beamToNamed('/dashboard'),
           ),
@@ -90,16 +124,19 @@ class MyApp extends ConsumerWidget {
   }
 }
 
+// Step 5: Refactor the authInitializationProvider to use the injected dependencies
 final authInitializationProvider = FutureProvider<bool>((ref) async {
-  final authNotifier = ref.read(authProvider.notifier);
-  await authNotifier._checkAuthStatus();
+  final appDependencies = ref.read(appDependenciesProvider);
+  await appDependencies.authNotifier._checkAuthStatus();
   return true;
 });
 
+// SplashScreen remains the same
 class SplashScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen<bool>(authProvider, (_, isLoggedIn) {
+    Future.delayed(Duration(seconds: 2), () {
+      final isLoggedIn = ref.read(authProvider);
       if (isLoggedIn) {
         Beamer.of(context).beamToNamed('/dashboard');
       } else {
@@ -127,6 +164,7 @@ class SplashScreen extends ConsumerWidget {
   }
 }
 
+// LoginPage and other pages remain the same
 class LoginPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -135,7 +173,10 @@ class LoginPage extends ConsumerWidget {
         child: ElevatedButton(
           onPressed: () async {
             try {
-              await ref.read(authProvider.notifier).login('dummy_token');
+              await ref
+                  .read(appDependenciesProvider)
+                  .authNotifier
+                  .login('dummy_token');
               Beamer.of(context).beamToNamed('/dashboard');
             } catch (e) {
               ScaffoldMessenger.of(context).showSnackBar(
