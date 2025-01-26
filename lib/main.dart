@@ -3,15 +3,60 @@ import 'package:beamer/beamer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-// Step 1: Create AppDependencies to manage all services and notifiers
+// Step 1: Define AuthService
+class AuthService {
+  final FlutterSecureStorage _secureStorage;
+
+  AuthService(this._secureStorage);
+
+  Future<bool> isAuthenticated() async {
+    final token = await _secureStorage.read(key: 'auth_token');
+    return token != null;
+  }
+
+  Future<void> login(String token) async {
+    await _secureStorage.write(key: 'auth_token', value: token);
+  }
+
+  Future<void> logout() async {
+    await _secureStorage.delete(key: 'auth_token');
+  }
+}
+
+// Step 2: Create AuthNotifier to handle login/logout and session persistence
+class AuthNotifier extends StateNotifier<bool> {
+  final AuthService _authService;
+
+  AuthNotifier(this._authService) : super(false) {
+    _checkAuthStatus();
+  }
+
+  Future<void> _checkAuthStatus() async {
+    final isAuthenticated = await _authService.isAuthenticated();
+    state = isAuthenticated;
+  }
+
+  Future<void> login(String token) async {
+    await _authService.login(token);
+    state = true;
+  }
+
+  Future<void> logout() async {
+    await _authService.logout();
+    state = false;
+  }
+}
+
+// Step 3: Define the AppDependencies class and inject AuthService into it
 class AppDependencies {
   final FlutterSecureStorage secureStorage;
+  final AuthService authService;
   final AuthNotifier authNotifier;
 
   AppDependencies()
       : secureStorage = const FlutterSecureStorage(),
-        authNotifier =
-            AuthNotifier(secureStorage: const FlutterSecureStorage());
+        authService = AuthService(const FlutterSecureStorage()),
+        authNotifier = AuthNotifier(AuthService(const FlutterSecureStorage()));
 
   // Add other services/notifiers as needed
 }
@@ -22,43 +67,13 @@ final appDependenciesProvider = Provider<AppDependencies>((ref) {
       'AppDependencies must be provided via ProviderScope.overrideWithValue.');
 });
 
-// Step 2: Create AuthNotifier to handle login/logout and session persistence
-class AuthNotifier extends StateNotifier<bool> {
-  final FlutterSecureStorage _storage;
-
-  AuthNotifier({required FlutterSecureStorage secureStorage})
-      : _storage = secureStorage,
-        super(false) {
-    _checkAuthStatus();
-  }
-
-  Future<void> _checkAuthStatus() async {
-    final token = await _storage.read(key: 'auth_token');
-    state = token != null;
-  }
-
-  Future<void> login(String token) async {
-    try {
-      await _storage.write(key: 'auth_token', value: token);
-      state = true;
-    } catch (e) {
-      throw Exception('Login failed: Unable to store token');
-    }
-  }
-
-  Future<void> logout() async {
-    await _storage.delete(key: 'auth_token');
-    state = false;
-  }
-}
-
-// Step 3: Define the authProvider to expose the authentication state
+// Step 4: Define the authProvider to expose the authentication state
 final authProvider = StateNotifierProvider<AuthNotifier, bool>((ref) {
   final appDependencies = ref.read(appDependenciesProvider);
   return appDependencies.authNotifier;
 });
 
-// Step 4: Main App with AppDependencies injection
+// Step 5: Main App with AppDependencies injection
 void main() {
   // Create an instance of AppDependencies to inject globally
   final appDependencies = AppDependencies();
@@ -78,7 +93,6 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Access AppDependencies and use them in your app
-    final appDependencies = ref.watch(appDependenciesProvider);
     final authInitialization = ref.watch(authInitializationProvider);
 
     return MaterialApp.router(
@@ -124,7 +138,7 @@ class MyApp extends ConsumerWidget {
   }
 }
 
-// Step 5: Refactor the authInitializationProvider to use the injected dependencies
+// Step 6: Refactor the authInitializationProvider to use the injected dependencies
 final authInitializationProvider = FutureProvider<bool>((ref) async {
   final appDependencies = ref.read(appDependenciesProvider);
   await appDependencies.authNotifier._checkAuthStatus();
